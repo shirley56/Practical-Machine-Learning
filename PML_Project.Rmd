@@ -1,0 +1,80 @@
+---
+title: "PML_Project"
+author: "Shirley"
+date: "4/16/2018"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r Read data}
+# Read data from csv
+training <- read.csv("/Users/Shirley/Downloads/Coursera/Practical Machine Learning/Project/pml-training.csv", na.strings=c("NA","#DIV/0!", "")) 
+testing <- read.csv("/Users/Shirley/Downloads/Coursera/Practical Machine Learning/Project/pml-testing.csv", na.strings=c("NA","#DIV/0!", ""))  
+
+# Check the data size
+dim(training)
+dim(testing)
+
+# Remove columns with all NAs
+train <- training[, colSums(is.na(training)) == 0]
+test <- testing[, colSums(is.na(testing)) == 0]
+
+train <- train[, -c(1:7)]
+test <- test[, -c(1:7)]
+
+# Check the data size again
+dim(train)
+dim(test)
+```
+
+```{r CV}
+set.seed(12357)
+# Partitioning training data
+library(caret)
+sub <- createDataPartition(y=train$classe, p=0.7, list=FALSE)
+subTrain <- train[sub, ] 
+subTest <- train[-sub, ]
+
+# Check the data size
+dim(subTrain)
+dim(subTest)
+```
+
+```{r Random Forest Model}
+library(randomForest)
+rf <- randomForest(classe ~. , data=subTrain, method="class")
+
+# Prediction
+prediction1 <- predict(rf, subTest, type = "class")
+
+# Test results on subTesti
+confusionMatrix(prediction1, subTest$classe)
+```
+
+
+```{r Decision Tree Model}
+library(rpart) 
+library(rpart.plot) 
+
+dt <- rpart(classe ~ ., data=subTrain, method="class")
+
+# Prediction
+prediction2 <- predict(dt, subTest, type = "class")
+
+# Plot of the Decision Tree
+rpart.plot(dt, main="Classification Tree", under=TRUE, faclen=0)    
+
+# Test results on subTest 
+confusionMatrix(prediction2, subTest$classe)
+```
+
+```{r Model Prediction (Random Forest)}
+# Prediction
+prediction <- predict(rf, test, type = "class")      
+prediction      
+```
+
+```{r}
+              
+```
